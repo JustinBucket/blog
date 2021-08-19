@@ -17,6 +17,12 @@ namespace API.Controllers
         {
             _model = model;
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPosts()
+        {
+            return Ok(await _model.Posts.ReadAllNodes<Post>());
+        }
         
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPost(Guid id)

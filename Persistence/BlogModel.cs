@@ -7,6 +7,6 @@ namespace Persistence
     {
         [Table]
         public DatabaseNode Posts { get; set; }
-        public BlogModel(string dbRoot) : base(dbRoot) { }
+        public BlogModel(string dbRoot, int nodeSize) : base(dbRoot, nodeSize) { }
     }
 }
