@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using BucketDatabase;
-using BucketDatabase.Query;
+using Application.Posts;
 using Domain;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Persistence;
+using System.Linq;
+using System.Threading;
 
 namespace API.Controllers
 {
@@ -12,49 +14,63 @@ namespace API.Controllers
     [Route("[controller]")]
     public class PostController : ControllerBase
     {
-        private readonly BlogModel _model;
-        public PostController(BlogModel model)
+        private readonly IMediator _mediator;
+
+        public PostController(IMediator mediator)
         {
-            _model = model;
+            _mediator = mediator;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPosts()
+        public async Task<ActionResult<IList<Post>>> GetPosts(CancellationToken token)
         {
-            return Ok(await _model.Posts.ReadAllNodes<Post>());
+            var posts = await _mediator.Send(new List.Query(), token);
+            return posts.ToList();
         }
-        
+
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPost(Guid id)
+        public async Task<ActionResult<Post>> GetPost(Guid id, CancellationToken token)
         {
-            var param = new QueryParameter()
-            {
-                Id = id
-            };
+            var result = await _mediator.Send(new Details.Query{Id = id}, token);
 
-            var result = await _model.Posts.Query<Post>(param);
-
-            return Ok(result.IdMatch);
+            return result;
         }
 
         [HttpGet("type/{type}")]
-        public async Task<IActionResult> GetTypePosts(string type)
+        public async Task<ActionResult<IList<Post>>> GetTypePosts(string type, CancellationToken token)
         {
-            var param = new QueryParameter();
+            MediaType mediaType;
+            
+            var parseSuccess = Enum.TryParse<MediaType>(type, true, out mediaType);
 
-            var queryable = new QueryableEntry()
+            if (!parseSuccess)
             {
-                PropertyName = "Type",
-                PropertyValue = type
-            };
+                return BadRequest($"'{type}' is not a valid MediaType");
+            }
 
-            param.QueryableEntries.Add(queryable);
+            var posts = await _mediator.Send(new TypeList.Query{Type = mediaType}, token);
 
-            var results = await _model.Posts.Query<Post>(param);
+            return posts.ToList();
+        }
 
-            // return Ok(type);
+        [HttpPost]
+        public async Task<IActionResult> CreatePost(Post post, CancellationToken token)
+        {
+            return Ok(await _mediator.Send(new Create.Command { Post = post }, token));
+        }
 
-            return Ok(results.QueryableMatches);
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditPost(Guid id, Post post, CancellationToken token)
+        {
+            post.Id = id;
+
+            return Ok(await _mediator.Send(new Edit.Command { Post = post }, token));
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePost(Guid id, CancellationToken token)
+        {
+            return Ok(await _mediator.Send(new Delete.Command { Id = id }, token));
         }
 
     }
