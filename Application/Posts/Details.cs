@@ -1,7 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using Domain;
+using Domain.DTOs;
 using MediatR;
 using Persistence;
 
@@ -9,23 +11,27 @@ namespace Application.Posts
 {
     public class Details
     {
-        public class Query : IRequest<Post>
+        public class Query : IRequest<OutboundPostDto>
         {
             public Guid Id { get; set; }
         }
 
-        public class Handler : IRequestHandler<Query, Post>
+        public class Handler : IRequestHandler<Query, OutboundPostDto>
         {
             private readonly DataContext _context;
-            public Handler(DataContext context)
+            private readonly IMapper _mapper;
+            public Handler(DataContext context, IMapper mapper)
             {
+                _mapper = mapper;
                 _context = context;
             }
-            public async Task<Post> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<OutboundPostDto> Handle(Query request, CancellationToken cancellationToken)
             {
                 var post = await _context.Posts.FindAsync(request.Id, cancellationToken);
-                
-                return post;
+
+                var postForReturn = _mapper.Map<OutboundPostDto>(post);
+
+                return postForReturn;
             }
         }
     }

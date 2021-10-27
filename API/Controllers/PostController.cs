@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading;
+using Domain.DTOs;
 
 namespace API.Controllers
 {
@@ -22,14 +23,15 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IList<Post>>> GetPosts(CancellationToken token)
+        public async Task<ActionResult<IList<OutboundPostDto>>> GetPosts(CancellationToken token)
         {
             var posts = await _mediator.Send(new List.Query(), token);
+
             return posts.ToList();
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Post>> GetPost(Guid id, CancellationToken token)
+        public async Task<ActionResult<OutboundPostDto>> GetPost(Guid id, CancellationToken token)
         {
             var result = await _mediator.Send(new Details.Query{Id = id}, token);
 
@@ -37,7 +39,7 @@ namespace API.Controllers
         }
 
         [HttpGet("type/{type}")]
-        public async Task<ActionResult<IList<Post>>> GetTypePosts(string type, CancellationToken token)
+        public async Task<ActionResult<IList<OutboundPostDto>>> GetTypePosts(string type, CancellationToken token)
         {
             MediaType mediaType;
             
@@ -71,6 +73,12 @@ namespace API.Controllers
         public async Task<IActionResult> DeletePost(Guid id, CancellationToken token)
         {
             return Ok(await _mediator.Send(new Delete.Command { Id = id }, token));
+        }
+
+        [HttpGet("type")]
+        public async Task<IActionResult> GetTypes() 
+        {
+            return Ok(Enum.GetNames<MediaType>());
         }
 
     }

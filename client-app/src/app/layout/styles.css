@@ -1,0 +1,30 @@
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+.logo-image {
+  -webkit-filter: invert(1);
+   filter: invert(1);
+}
+
+body {
+  background-color: #EAEAEA !important;
+}
+
+.Book {
+  color:   #00acc1  !important;
+}
+
+.Music {
+  color:  #8e24aa  !important;
+}
+
+.Movie {
+  color:  #1e88e5 !important;
+}
+
+.VideoGame {
+  color: darkmagenta !important;
+}

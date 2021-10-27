@@ -1,5 +1,6 @@
 using AutoMapper;
 using Domain;
+using Domain.DTOs;
 
 namespace Application.Core
 {
@@ -8,6 +9,10 @@ namespace Application.Core
         public MappingProfiles()
         {
             CreateMap<Post, Post>();
+            CreateMap<Post, OutboundPostDto>()
+                .ForMember(dest => dest.TypeString, opt => opt.MapFrom(
+                    src => src.Type.GetDescription()
+                ));
         }
     }
 }

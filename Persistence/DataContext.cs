@@ -14,12 +14,7 @@ namespace Persistence
         {
 
             modelBuilder
-                .Entity<Post>()
-                .Property(e => e.Paragraphs)
-                .HasConversion(
-                    v => string.Join("|", v),
-                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries));
-
+                .Entity<Post>();
         }
     }
 }
