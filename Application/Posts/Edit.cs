@@ -26,11 +26,11 @@ namespace Application.Posts
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                var postToUpdate = await _context.Posts.FindAsync(request.Post.Id, cancellationToken);
+                var postToUpdate = await _context.Posts.FindAsync(request.Post.Id);
 
                 _mapper.Map(request.Post, postToUpdate);
 
-                await _context.SaveChangesAsync(cancellationToken);
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

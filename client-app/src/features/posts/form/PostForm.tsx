@@ -9,20 +9,22 @@ import {
 import { Post } from "../../../app/models/post";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import { EditorState } from "draft-js";
+import { convertToRaw, EditorState } from "draft-js";
 
 interface Props {
   types: string[];
   post: Post | undefined;
   closeForm: () => void;
   createOrEdit: (post: Post) => void;
+  submitting: boolean;
 }
 
 export default function PostForm({
   types,
   post: selectedPost,
   closeForm,
-  createOrEdit
+  createOrEdit,
+  submitting
 }: Props) {
   const initialState = selectedPost ?? {
     id: "",
@@ -67,7 +69,7 @@ export default function PostForm({
 
   function handleEditorStateChange(editorState: EditorState) {
     setState(editorState);
-    setPost({...post, 'body': JSON.stringify(editorState, null, 4)})
+    setPost({...post, 'body': JSON.stringify(convertToRaw(editorState.getCurrentContent()))});
   }
 
   return (
@@ -100,7 +102,7 @@ export default function PostForm({
         />
         {/* <Form.Input placeholder="Image path - should be an upload input" /> */}
         <Divider />
-        <Button floated="right" positive type="submit" content="Post"/>
+        <Button loading={submitting} floated="right" positive type="submit" content="Post"/>
         <Button
           floated="right"
           type="button"

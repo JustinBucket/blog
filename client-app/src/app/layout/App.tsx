@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Container } from "semantic-ui-react";
 import { Post } from "../models/post";
 import NavBar from "./navbar";
 import BlogFooter from "./footer";
 import PostDashboard from "../../features/posts/dashboard/PostDashboard";
 import {v4 as uuid} from 'uuid';
+import agent from "../api/agent";
+import LoadingComponent from "./LoadingComponent";
 
 function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [types, setTypes] = useState<string[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | undefined>(undefined);
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     getPosts();
@@ -19,14 +22,20 @@ function App() {
   }, []);
 
   function getPosts() {
-    axios.get("http://localhost:5000/post").then((response) => {
-      setPosts(response.data);
-    });
+    agent.Posts.list().then(reponse => {
+      let posts: Post[] = [];
+      reponse.forEach(post => {
+        post.creationDate = post.creationDate.split('T')[0];
+        posts.push(post);
+      })
+      setPosts(reponse);
+    })
   }
 
   function getTypes() {
-    axios.get("http://localhost:5000/post/type").then((response) => {
-      setTypes(response.data);
+    agent.Posts.types().then(response => {
+      setTypes(response);
+      setLoading(false);
     });
   }
 
@@ -48,15 +57,40 @@ function App() {
   }
 
   function handleCreateOrEditPost(post: Post) {
-    post.id ? setPosts([...posts.filter(x => x.id !== post.id), post])
-    : setPosts([...posts, {...post, id: uuid()}]);
-    setEditMode(false);
-    setSelectedPost(post);
+    setSubmitting(true);
+
+    if (post.id) {
+      agent.Posts.update(post).then(() => {
+        post.id ? setPosts([...posts.filter(x => x.id !== post.id), post])
+        : setPosts([...posts, {...post, id: uuid()}]);
+
+        setSelectedPost(post);
+        setEditMode(false);
+        setSubmitting(false);
+      });
+    } else {
+      post.id = uuid();
+      post.creationDate = new Date().toISOString();
+      agent.Posts.create(post).then(() => {
+        setPosts([...posts, post]);
+
+        setSelectedPost(post);
+        setEditMode(false);
+        setSubmitting(false);
+      });
+
+    }
   }
 
   function handleDeletePost(id: string) {
-    setPosts([...posts.filter(x => x.id !== id)]);
+    setSubmitting(true);
+    agent.Posts.delete(id).then(() => {
+      setPosts([...posts.filter(x => x.id !== id)]);
+      setSubmitting(false);
+    })
   }
+
+  if (loading) return <LoadingComponent content='Loading app'/>
 
   return (
     <>
@@ -73,6 +107,7 @@ function App() {
           closeForm={handleFormClose}
           createOrEdit={handleCreateOrEditPost}
           deletePost={handleDeletePost}
+          submitting={submitting}
         />
       </Container>
       <BlogFooter />

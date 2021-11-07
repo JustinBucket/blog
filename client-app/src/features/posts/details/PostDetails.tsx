@@ -1,6 +1,9 @@
-import React from "react";
+import { EditorState } from "draft-js";
+import React, { useState } from "react";
+import { Editor} from "react-draft-wysiwyg";
 import { Button, Card, Image } from "semantic-ui-react";
 import { Post } from "../../../app/models/post";
+import { convertFromRaw } from 'draft-js';
 
 interface Props {
   post: Post;
@@ -13,6 +16,9 @@ export default function PostDetails({
   cancelSelectPost,
   openForm,
 }: Props) {
+
+  const [editorState, setState] = useState(EditorState.createWithContent(convertFromRaw(JSON.parse(post.body))));
+
   return (
     <Card fluid>
       <Image src={"/assets/" + post.id + ".png"} />
@@ -22,15 +28,16 @@ export default function PostDetails({
           <span>{post.creationDate}</span>
         </Card.Meta>
         <Card.Description>
-          {/* this will need to be more complex? to handle the json */}
-          {post.body}
+          {/* need to load up the json string of the body into an editor state */}
+          {/* {post.body} */}
 
-          {/* <Editor
+          <Editor
             readOnly
-            toolbarClassName="rdw-storybook--toolbar"
+            toolbarHidden={true}
             wrapperClassName="rdw-storybook-wrapper"
             editorClassName="rdw-storybook-editor"
-          /> */}
+            editorState={editorState}
+          />
         </Card.Description>
       </Card.Content>
       <Card.Content extra>
