@@ -1,23 +1,18 @@
 import { EditorState } from "draft-js";
 import React, { useState } from "react";
-import { Editor} from "react-draft-wysiwyg";
+import { Editor } from "react-draft-wysiwyg";
 import { Button, Card, Image } from "semantic-ui-react";
-import { Post } from "../../../app/models/post";
 import { convertFromRaw } from 'draft-js';
+import { useStore } from "../../../app/stores/store";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
 
-interface Props {
-  post: Post;
-  cancelSelectPost: () => void;
-  openForm: (id: string) => void;
-}
+export default function PostDetails() {
 
-export default function PostDetails({
-  post,
-  cancelSelectPost,
-  openForm,
-}: Props) {
+  const { postStore } = useStore();
+  const { selectedPost: post, openForm, cancelSelectedPost } = postStore;
+  const [editorState] = useState(post === undefined ? EditorState.createEmpty() : EditorState.createWithContent(convertFromRaw(JSON.parse(post.body))));
 
-  const [editorState, setState] = useState(EditorState.createWithContent(convertFromRaw(JSON.parse(post.body))));
+  if (!post) return <LoadingComponent content='oops' />;
 
   return (
     <Card fluid>
@@ -47,7 +42,7 @@ export default function PostDetails({
           color="blue"
           content="Edit"
         />
-        <Button basic color="grey" content="Close" onClick={cancelSelectPost} />
+        <Button basic color="grey" content="Close" onClick={cancelSelectedPost} />
       </Card.Content>
     </Card>
   );

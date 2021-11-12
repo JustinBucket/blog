@@ -1,48 +1,27 @@
+import { observer } from "mobx-react-lite";
 import React from "react";
 import { Grid } from "semantic-ui-react";
-import { Post } from "../../../app/models/post";
+import { useStore } from "../../../app/stores/store";
 import PostDetails from "../details/PostDetails";
 import PostForm from "../form/PostForm";
 import PostList from "./PostList";
 
-interface Props {
-  posts: Post[];
-  types: string[];
-  selectedPost: Post | undefined;
-  selectPost: (id: string) => void;
-  cancelSelectPost: () => void;
-  editMode: boolean;
-  openForm: (id: string) => void;
-  closeForm: () => void;
-  createOrEdit: (post: Post) => void;
-  deletePost: (id: string) => void;
-  submitting: boolean;
-}
+export default observer(function PostDashboard() {
 
-export default function PostDashboard({
-  posts,
-  types,
-  selectedPost,
-  selectPost,
-  cancelSelectPost,
-  editMode,
-  openForm,
-  closeForm,
-  createOrEdit,
-  deletePost,
-  submitting
-}: Props) {
+  const {postStore} = useStore();
+  const {selectedPost, editMode} = postStore;
+
   return (
     <Grid>
       <Grid.Column width="10">
-        <PostList posts={posts} selectPost={selectPost} deletePost={deletePost} submitting={submitting}/>
+        <PostList/>
       </Grid.Column>
       <Grid.Column width="6">
-        {selectedPost && !editMode && 
-        <PostDetails post={selectedPost} cancelSelectPost={cancelSelectPost} openForm={openForm} />}
+        {selectedPost && !editMode &&
+          <PostDetails/>}
         {editMode &&
-        <PostForm types={types} closeForm={closeForm} post={selectedPost} createOrEdit={createOrEdit} submitting={submitting}/>}
+          <PostForm/>}
       </Grid.Column>
     </Grid>
   );
-}
+})

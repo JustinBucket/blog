@@ -3,18 +3,21 @@ import { Button, Item, Label } from "semantic-ui-react";
 import { Post } from "../../../app/models/post";
 import { EditorState, convertFromRaw } from "draft-js";
 import { Editor} from "react-draft-wysiwyg";
+import { useStore } from "../../../app/stores/store";
+import { observer } from "mobx-react-lite";
 
 interface Props {
   post: Post;
-  selectPost: (id: string) => void;
-  deletePost: (id: string) => void;
-  submitting: boolean;
 }
 
-export default function PostPreview({ post, selectPost, deletePost, submitting }: Props) {
+export default observer(function PostPreview({ post }: Props) {
+
+  const {postStore} = useStore();
+  const {deletePost, loading} = postStore;
+
   const [target, setTarget] = useState("");
 
-  const [editorState, setState] = useState(EditorState.createWithContent(convertFromRaw(JSON.parse(post.body))));
+  const [editorState] = useState(EditorState.createWithContent(convertFromRaw(JSON.parse(post.body))));
 
   function handlePostDelete(e: SyntheticEvent<HTMLButtonElement>, id: string) {
     setTarget(e.currentTarget.name);
@@ -22,7 +25,7 @@ export default function PostPreview({ post, selectPost, deletePost, submitting }
   }
   
   return (
-    <Item key={post.id}>
+    <Item>
       <Item.Image src={"/assets/" + post.id + ".png"} alt="post image" />
       <Item.Content>
         <div className="headers">
@@ -47,7 +50,7 @@ export default function PostPreview({ post, selectPost, deletePost, submitting }
             className={post.typeString.replace(" ", "")}
           />
           <Button
-            onClick={() => selectPost(post.id)}
+            onClick={() => postStore.selectPost(post.id)}
             floated="right"
             content="Read"
             color="green"
@@ -57,11 +60,11 @@ export default function PostPreview({ post, selectPost, deletePost, submitting }
             floated="right"
             content="Delete"
             color="red"
-            loading={submitting && target === post.id}
+            loading={loading && target === post.id}
             name={post.id}
           />
         </Item.Extra>
       </Item.Content>
     </Item>
   );
-}
+})

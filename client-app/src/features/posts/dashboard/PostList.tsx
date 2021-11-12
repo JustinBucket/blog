@@ -1,24 +1,20 @@
-import React, { SyntheticEvent, useState } from "react";
-import { Button, HeaderSubheader, Item, Label, Segment } from "semantic-ui-react";
-import { Post } from "../../../app/models/post";
+import { observer } from "mobx-react-lite";
+import { Item, Segment } from "semantic-ui-react";
+import { useStore } from "../../../app/stores/store";
 import PostPreview from "./PostPreview";
 
-interface Props {
-  posts: Post[];
-  selectPost: (id: string) => void;
-  deletePost: (id: string) => void;
-  submitting: boolean;
-}
+export default observer(function PostList() {
 
-export default function PostList({ posts, selectPost, deletePost, submitting }: Props) {
+  const {postStore} = useStore();
+  const {postsByDate} = postStore;
 
   return (
     <Segment>
       <Item.Group divided>
-        {posts.map((post) => (
-          <PostPreview post={post} selectPost={selectPost} deletePost={deletePost} submitting={submitting}/>
+        {postsByDate.map((post) => (
+          <PostPreview post={post} key={post.id}/>
         ))}
       </Item.Group>
     </Segment>
   );
-}
+})

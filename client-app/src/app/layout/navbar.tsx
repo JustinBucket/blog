@@ -1,26 +1,32 @@
-import React from 'react';
-import { Button, Container, Menu } from 'semantic-ui-react';
+import React from "react";
+import { Button, Container, Menu } from "semantic-ui-react";
+import { useStore } from "../stores/store";
 
-interface Props {
-    openForm: () => void;
-};
+export default function NavBar() {
+    const { postStore } = useStore();
 
-export default function NavBar({openForm}: Props) {
     return (
-        <Menu inverted fixed='top'>
+        <Menu inverted fixed="top">
             <Container>
                 <Menu.Item header>
-                    <img className="logo-image" src="/assets/logo.png" alt="logo" style={{marginRight: '10px'}}/>
+                    <img
+                        className="logo-image"
+                        src="/assets/logo.png"
+                        alt="logo"
+                        style={{ marginRight: "10px" }}
+                    />
                     Bucket Blog
                 </Menu.Item>
                 <Menu.Item>
-                    <Button onClick={openForm} positive content='Create Post'/>
+                    <Button
+                        onClick={() => postStore.openForm()}
+                        positive
+                        content="Create Post"
+                    />
                 </Menu.Item>
-                <Menu.Item name='All posts'/>
-                <Menu.Item name='About'/>
-                
+                <Menu.Item name="All posts" />
+                <Menu.Item name="About" />
             </Container>
         </Menu>
-
-    )
+    );
 }
