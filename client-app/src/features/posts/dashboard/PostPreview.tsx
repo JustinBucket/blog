@@ -5,6 +5,7 @@ import { EditorState, convertFromRaw } from "draft-js";
 import { Editor} from "react-draft-wysiwyg";
 import { useStore } from "../../../app/stores/store";
 import { observer } from "mobx-react-lite";
+import { Link } from "react-router-dom";
 
 interface Props {
   post: Post;
@@ -50,7 +51,7 @@ export default observer(function PostPreview({ post }: Props) {
             className={post.typeString.replace(" ", "")}
           />
           <Button
-            onClick={() => postStore.selectPost(post.id)}
+            as={Link} to={`/posts/${post.id}`}
             floated="right"
             content="Read"
             color="green"

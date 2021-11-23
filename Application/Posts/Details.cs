@@ -27,7 +27,7 @@ namespace Application.Posts
             }
             public async Task<OutboundPostDto> Handle(Query request, CancellationToken cancellationToken)
             {
-                var post = await _context.Posts.FindAsync(request.Id, cancellationToken);
+                var post = await _context.Posts.FindAsync(new object[] {request.Id}, cancellationToken);
 
                 var postForReturn = _mapper.Map<OutboundPostDto>(post);
 

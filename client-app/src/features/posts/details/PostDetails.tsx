@@ -1,18 +1,26 @@
 import { EditorState } from "draft-js";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Editor } from "react-draft-wysiwyg";
 import { Button, Card, Image } from "semantic-ui-react";
 import { convertFromRaw } from 'draft-js';
 import { useStore } from "../../../app/stores/store";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
+import { useParams } from "react-router";
+import { observer } from "mobx-react-lite";
+import { Link } from "react-router-dom";
 
-export default function PostDetails() {
+export default observer(function PostDetails() {
 
   const { postStore } = useStore();
-  const { selectedPost: post, openForm, cancelSelectedPost } = postStore;
+  const { selectedPost: post, loadPost, loadingInitial } = postStore;
   const [editorState] = useState(post === undefined ? EditorState.createEmpty() : EditorState.createWithContent(convertFromRaw(JSON.parse(post.body))));
+  const { id } = useParams<{ id: string }>();
 
-  if (!post) return <LoadingComponent content='oops' />;
+  useEffect(() => {
+    if (id) loadPost(id);
+  }, [id, loadPost]);
+
+  if (loadingInitial || !post) return <LoadingComponent content='oops' />;
 
   return (
     <Card fluid>
@@ -37,13 +45,14 @@ export default function PostDetails() {
       </Card.Content>
       <Card.Content extra>
         <Button
-          onClick={() => openForm(post.id)}
+          as={Link}
+          to={`/manage/${post.id}`}
           basic
           color="blue"
           content="Edit"
         />
-        <Button basic color="grey" content="Close" onClick={cancelSelectedPost} />
+        <Button as={Link} to='/posts' basic color="grey" content="Close" />
       </Card.Content>
     </Card>
   );
-}
+})

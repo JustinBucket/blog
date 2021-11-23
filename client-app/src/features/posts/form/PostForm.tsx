@@ -1,4 +1,4 @@
-import React, { ChangeEvent, SyntheticEvent, useState } from "react";
+import React, { ChangeEvent, SyntheticEvent, useEffect, useState } from "react";
 import {
   Button,
   Divider,
@@ -11,20 +11,38 @@ import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { convertFromRaw, convertToRaw, EditorState } from "draft-js";
 import { useStore } from "../../../app/stores/store";
 import { observer } from "mobx-react-lite";
+import { useHistory, useParams } from "react-router-dom";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
+import { v4 as uuid } from "uuid";
+import { link } from "fs";
+
 
 export default observer(function PostForm() {
 
   const { postStore } = useStore();
-  const { selectedPost, closeForm, createPost, updatePost, loading } = postStore;
+  const { createPost, updatePost, loading, loadPost, loadingInitial } = postStore;
+  const { id } = useParams<{ id: string }>();
+  const history = useHistory();
 
-  const initialState = selectedPost ?? {
+  const [post, setPost] = useState({
     id: "",
     title: "",
     subtitle: "",
     body: "",
     creationDate: "",
     typeString: "",
-  };
+  })
+
+  const [editorState, setState] = useState(EditorState.createEmpty());
+
+  useEffect(() => {
+    if (id) {
+      loadPost(id).then(post => {
+        setPost(post!)
+        setState(EditorState.createWithContent(convertFromRaw(JSON.parse(post!.body))))
+      });
+    }
+  }, [id, loadPost])
 
   const typeOptions = [
     // need to get these from the server?
@@ -34,14 +52,18 @@ export default observer(function PostForm() {
     { key: "Movie", value: "Movie", text: "Movie" },
   ];
 
-  const [post, setPost] = useState(initialState);
-  // below causes error because the bodies aren't proper JSON yet, see about converting them?
-  const [editorState, setState] = useState(selectedPost === undefined ? EditorState.createEmpty() : EditorState.createWithContent(convertFromRaw(JSON.parse(post.body))));
-  // const [editorState, setState] = useState(EditorState.createEmpty());
 
   function handleSubmit() {
     post.creationDate = new Date().toISOString();
-    post.id ? updatePost(post) : createPost(post);
+    if (post.id.length === 0) {
+      let newPost = {
+        ...post,
+        id: uuid()
+      };
+      createPost(newPost).then(() => history.push(`/posts/${newPost.id}`));
+    } else {
+      updatePost(post).then(() => history.push(`/posts/${post.id}`));
+    }
   }
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
@@ -62,6 +84,8 @@ export default observer(function PostForm() {
     setState(editorState);
     setPost({ ...post, 'body': JSON.stringify(convertToRaw(editorState.getCurrentContent())) });
   }
+
+  if (loadingInitial) return <LoadingComponent content='Loading post...'/>
 
   return (
     <Segment clearing>
@@ -98,7 +122,7 @@ export default observer(function PostForm() {
           floated="right"
           type="button"
           content="Cancel"
-          onClick={closeForm}
+          as={link} to='/posts'
         />
       </Form>
     </Segment>
